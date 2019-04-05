@@ -36,7 +36,10 @@ defmodule Scraper do
           :poolboy.transaction(:worker, &GenServer.call(&1, {:scrape, url}), 60*1000)
         end)
       end)
-    Enum.each(tasks, fn task -> IO.puts(Task.await(task, 60*1000)) end)
+    Enum.each(tasks, fn task ->
+      {url, info} = Task.await(task, 5000)
+      :io.format("Page ~p info:~p~n",[url, info])
+    end)
   end
 
   def scrap(url) do
@@ -49,8 +52,8 @@ defmodule Scraper do
     ChromeRemoteInterface.PageSession.stop(page_pid)
     ChromeRemoteInterface.Session.close_page(server, Map.get(page, "id"))
     resources = resource_tree |> Map.get("result") |> Map.get("frameTree") |> Map.get("resources")
-    image_urls = for %{"url" => image_url, "type" => "Image"}  <- resources, do: image_url
-    %{"image_urls" => image_urls}
+    [first, second | _] = for %{"url" => image_url, "type" => "Image"}  <- resources, do: image_url
+    Jason.encode!(%{"image_urls" => [first, second]})
 
   end
 

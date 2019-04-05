@@ -10,10 +10,9 @@ defmodule Scraper.Worker do
   end
 
   def handle_call({:scrape, url}, _from, state) do
-    :io.format("Pid ~p processing ~p~n",[inspect(self), url])
+   # :io.format("Pid ~p processing ~p~n",[inspect(self), url])
     info = Scraper.scrap(url)
-    :io.format("Page ~p info:~p~n",[url, info])
-    {:reply, info, state}
+    {:reply, {url, info}, state}
   end
 
   def handle_call(call, _from, state) do
